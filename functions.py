@@ -11,7 +11,7 @@ def gaussian_kernel(global_weights, x, y):
 	return np.exp((-1/2)*argument)
 
 #Receives feature data in a numpy matrix format
-def gamma(feature_matrix):
+def gamma(feature_matrix): # essa funcao calcula sigma, e nao gamma. certo? trocar o nome
 	distance_matrix = euclidean_distances(feature_matrix, feature_matrix)
 
 	vector_length = int((len(distance_matrix)*(len(distance_matrix)-1))/2)
@@ -31,6 +31,21 @@ def gamma(feature_matrix):
 
 	return gamma
 
+# atualização dos prototipos
+def update_g(view, elements, prototypes, global_weights):
+	qtd_cluster = len(prototypes)
+	cluster = [[] for _ in range(qtd_cluster)]
+	# alocando as instancias em seus respectivos clusters, fazendo com que o segundo for não fique n^2.
+	for key in elements.keys():
+		cluster[elements[key]].append(key) #observar se os cluster tao comecando de 0  ou 1. se comecar de 1 subtrair 1 no acesso
 
+	for i in range(0, qtd_cluster):
+		numerador   = 0
+		denominador = 0
+		for j in range(0, len(cluster[i])):
+			denominador += gaussian_kernel(global_weights, view(cluster[i][j]), prototypes[i])
+			numerador   += np.array(denominador) * view(cluster[i][j])
 
+		prototypes[i] = numerador / denominador
 
+	return prototypes
