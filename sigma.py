@@ -38,25 +38,21 @@ teta = euclidean_distances(M, M)
 k = int(n_dois_a_dois(len(view)))
 vetor = (k)*[None]
 
-for i in range(1, tam2-1):
-	for j in range(i, tam2):
-		
+for i in range(0, len(teta)-1):
+	for j in range(i+1, len(teta)):		
 		vetor[it] = teta[i][j]
 		it = it + 1
 
-# it = 0
 # for i in range(0, len(teta)):
 # 	for j in range(0, len(teta)):
 # 		if(j > i):
 # 			vetor[it] = teta[i][j]
 # 			it += 1
-		
-# print(str(k) + ' ' + str(len(vetor)))
 
 primeiro_quantil = int(0.1*n_dois_a_dois(len(view)))
 segundo_quantil  = int(0.9*n_dois_a_dois(len(view)))
 vetor_ordenado = np.sort(vetor)
-print(len(vetor_ordenado))
+# print(len(vetor_ordenado))
 
 print(vetor_ordenado[primeiro_quantil])
 print(vetor_ordenado[segundo_quantil])
