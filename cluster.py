@@ -14,16 +14,16 @@ class Partition:
 		self.initialize_partitions()
 
 
-	def initialize_parameters(self):		
+	def initialize_parameters(self):
 		#Number of variables
 		p = len(self.view.columns)
 		#A suitable parameter
-		gamma = f.gamma(self.view.as_matrix())
+		self.gamma = (1/f.sigma_squared(self.view.as_matrix()))**p
 		#Global weights for each variable
 		self.weights = p*[None]
 		#Initialize weights
 		for i in range(0, p):
-			self.weights[i] = gamma**(1/p)
+			self.weights[i] = self.gamma**(1/p)
 
 		#Set initial random prototypes
 		self.prototypes = self.view.sample(frac=1)[0:7].index.values
@@ -37,16 +37,18 @@ class Partition:
 		for el in el_not_prot:
 			dist = float("inf")
 			nearest_cluster = 0
-			
+
 			for h in range(0, self.c):
 				#Kernel between element and cluster prototype
-				x = 2*(1 - f.gaussian_kernel(self.weights, np.array(self.view.iloc[h]),
+				x = 2*(1 - f.gaussian_kernel(self.weights, np.array(self.view.iloc[el]),
 					np.array(self.view.iloc[self.prototypes[h]])))
+
+				print(x)
 
 				if (x < dist):
 					nearest_cluster = h
 					dist = x
-			
+
 			self.elements[el] = nearest_cluster
 
 	def print_prot(self):

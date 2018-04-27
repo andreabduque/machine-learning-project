@@ -11,7 +11,7 @@ def gaussian_kernel(global_weights, x, y):
 	return np.exp((-1/2)*argument)
 
 #Receives feature data in a numpy matrix format
-def gamma(feature_matrix):
+def sigma_squared(feature_matrix):
 	distance_matrix = euclidean_distances(feature_matrix, feature_matrix)
 
 	vector_length = int((len(distance_matrix)*(len(distance_matrix)-1))/2)
@@ -19,7 +19,7 @@ def gamma(feature_matrix):
 
 	it = 0
 	for i in range(0, len(distance_matrix)-1):
-		for j in range(i+1, len(distance_matrix)):		
+		for j in range(i+1, len(distance_matrix)):
 			vector[it] = distance_matrix[i][j]
 			it = it + 1
 
@@ -27,10 +27,4 @@ def gamma(feature_matrix):
 	second_quantile  = int(0.9*vector_length)
 	sorted_vector = np.sort(vector)
 
-	gamma = (sorted_vector[first_quantile] + sorted_vector[second_quantile])/2
-
-	return gamma
-
-
-
-
+	return 0.5*(sorted_vector[first_quantile]**2 + sorted_vector[second_quantile]**2)
