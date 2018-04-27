@@ -18,15 +18,6 @@ for i in range(0, len(dist_each_pair_vectors)-1):
 		vetor[it] = dist_each_pair_vectors[i][j]
 		it = it + 1
 
-# for i in range(0, len(teta)):
-# 	for j in range(0, len(teta)):
-# 		if(j > i):
-# 			vetor[it] = teta[i][j]
-# 			it += 1
-
-# print(vetor_ordenado[primeiro_quantil])
-# print(vetor_ordenado[segundo_quantil])
-
 primeiro_quantil = int(0.1*n_dois_a_dois(len(view)))
 segundo_quantil  = int(0.9*n_dois_a_dois(len(view)))
 vetor_ordenado = np.sort(vetor)
