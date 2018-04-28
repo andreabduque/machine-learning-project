@@ -20,11 +20,11 @@ def sigma_squared(feature_matrix):
 	it = 0
 	for i in range(0, len(distance_matrix)-1):
 		for j in range(i+1, len(distance_matrix)):
-			vector[it] = distance_matrix[i][j]
+			vector[it] = distance_matrix[i][j]**2
 			it = it + 1
 
 	first_quantile = int(0.1*vector_length)
 	second_quantile  = int(0.9*vector_length)
 	sorted_vector = np.sort(vector)
 
-	return 0.5*(sorted_vector[first_quantile]**2 + sorted_vector[second_quantile]**2)
+	return 0.5*(sorted_vector[first_quantile] + sorted_vector[second_quantile])
