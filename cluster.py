@@ -10,29 +10,33 @@ class Partition:
 		self.c = nclusters
 		self.view = view
 
+		print("inicializando")
 		self.initialize_parameters()
 		self.initialize_partitions()
-
-		self.update_prototypes()
+		print("otimizando")
+		self.optimize_partition()
 
 	def initialize_parameters(self):
 		#Number of variables
-		p = len(self.view.columns)
+		self.p = len(self.view.columns)
 		#A suitable parameter
-		self.gamma = (1/f.sigma_squared(self.view.as_matrix()))**p
+		self.gamma = (1/f.sigma_squared(self.view.as_matrix()))**self.p
 		#Global weights for each variable
-		self.weights = p*[None]
+		self.weights = self.p*[None]
 		#Initialize weights
-		for i in range(0, p):
-			self.weights[i] = self.gamma**(1/p)
+		for i in range(0, self.p):
+			self.weights[i] = self.gamma**(1/self.p)
 
 		#Set initial random prototypes
 		random_sample = self.view.sample(frac=1)[0:7]
 		self.prototypes = random_sample.as_matrix()
 		self.initial_prototypes = random_sample.index.values
 
-		print("prots iniciais")
-		print(self.prototypes)
+		# print("prots iniciais")
+		# print(self.prototypes)
+
+		print("pesos iniciais")
+		print(self.weights)
 
 
 	def initialize_partitions(self):
@@ -55,38 +59,67 @@ class Partition:
 
 			self.elements[el] = nearest_cluster
 
-	def update_prototypes(self):
+	#Compute best prototypes and best hyper parameters
+	#Returns partition energy
+	def optimize_partition(self):
 		clusters = [[] for _ in range(self.c)]
 		for key in self.elements.keys():
 			clusters[self.elements[key]].append(key)
+
+		print("calculando melhores prototipos")
+		self.update_prototypes(clusters)
+		print("calculando hiper parametros")
+		self.update_weights(clusters)
+
+	def update_prototypes(self, clusters):
 
 		for i in range(0, self.c):
 			#Do not fool yourself: Numerator is a vector
 			num  =  0
 			denom = 0
 			for j in range(0, len(clusters[i])):
-				denom += f.gaussian_kernel(self.weights, self.view.iloc[clusters[i][j]], self.prototypes[i])
-				num   += np.array(denom) * self.view.iloc[clusters[i][j]]
+				kernel = f.gaussian_kernel(self.weights, self.view.iloc[clusters[i][j]], self.prototypes[i])
+				num   += kernel * self.view.iloc[clusters[i][j]]
+				denom += kernel
 
 			self.prototypes[i] = num / denom
 
-	def print_prot(self):
-		print(self.prototypes)
+	def update_weights(self, cluster):
+		new_weights = self.p*[None]
 
-	def print_weights(self):
-		print(self.weights)
+		for j in range(0, self.p):
+			produtorio = 1
+			denominador = 0
+			flag = 1
 
-	def print_elements(self):
-		print(self.elements)
+			for h in range(0, self.p):
+				numerador = 0
+				for i in range(0, self.c):
+					for k in range(0, len(cluster[i])):
+						#An Element from cluster
+						x_k = np.array(self.view.iloc[cluster[i][k]])
+						#Prototype from cluster
+						g_i =  self.prototypes[i]
+						#Numerator
+						parcela_gaussiana = f.gaussian_kernel(self.weights, x_k, g_i)
+						segunda_parcela_numerador = (x_k[h] - g_i[h])**2
+						numerador += parcela_gaussiana * segunda_parcela_numerador
 
+						#Denominator
+						if(flag == 1):
+							segunda_parcela_denominador = (x_k[j] - g_i[j])**2
+							denominador += parcela_gaussiana * segunda_parcela_denominador
+				flag = 0
+				produtorio *= numerador
+
+			produto = (self.gamma**(1/self.p)) * (produtorio **(1/self.p))
+			new_weights[j] = produto/denominador
+
+		print("pesos atualizados")
+		print(new_weights)
+		self.weights = new_weights
 
 view = data.drop(axis=1, columns = ["CLASS"])
 groups_class = data["CLASS"]
 
 part = Partition(7, view)
-print("prototypes atualizados")
-part.print_prot()
-print("pesos")
-part.print_weights()
-print("elementos")
-part.print_elements()
