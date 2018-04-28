@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import euclidean_distances
 import functions as f
+import json
 
 data = pd.read_csv("segmentation.csv", sep=",")
 
@@ -62,17 +63,46 @@ class Partition:
 	#Compute best prototypes and best hyper parameters
 	#Returns partition energy
 	def optimize_partition(self):
-		clusters = [[] for _ in range(self.c)]
-		for key in self.elements.keys():
-			clusters[self.elements[key]].append(key)
+		test = 1
+		ite = 1
+		while(test):
+			print(ite)
+			ite += 1
+			clusters = [[] for _ in range(self.c)]
+			for key in self.elements.keys():
+				clusters[self.elements[key]].append(key)
 
-		print("calculando melhores prototipos")
-		self.update_prototypes(clusters)
-		print("calculando hiper parametros")
-		self.update_weights(clusters)
+			print("calculando melhores prototipos")
+			self.update_prototypes(clusters)
+			print("calculando hiper parametros")
+			self.update_weights(clusters)
+
+			print("alocando nas particoes")
+			test = 0
+			for k in range(0, len(self.view)):
+				dist = float("inf")
+				nearest_cluster = 0
+				#Kernel between element and cluster prototype
+				for h in range(0, self.c):
+					x = 2*(1 - f.gaussian_kernel(self.weights, np.array(self.view.iloc[k]),
+						np.array(self.prototypes[h])))
+					if (x < dist):
+						nearest_cluster = h
+						dist = x
+
+				if(k in self.elements):
+					if(nearest_cluster != self.elements[k]):
+						test = 1
+
+				self.elements[k] = nearest_cluster
+
+		print("achou minimo local")
+		with open('result.json', 'w') as fp:
+    		json.dump(self.elements, fp)
+
+
 
 	def update_prototypes(self, clusters):
-
 		for i in range(0, self.c):
 			#Do not fool yourself: Numerator is a vector
 			num  =  0
@@ -88,6 +118,7 @@ class Partition:
 		new_weights = self.p*[None]
 
 		for j in range(0, self.p):
+			print("otimizando parametro " + str(j) + " de " + str(self.p))
 			produtorio = 1
 			denominador = 0
 			flag = 1
