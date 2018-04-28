@@ -1,21 +1,35 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics import adjusted_rand_score
 import functions as f
 import json
-
-data = pd.read_csv("segmentation.csv", sep=",")
 
 class Partition:
 	def __init__(self, nclusters, view):
 		self.c = nclusters
 		self.view = view
 
-		print("inicializando")
+	def run(self):
+		# print("inicializando")
 		self.initialize_parameters()
 		self.initialize_partitions()
-		print("otimizando")
+		# print("otimizando")
 		self.optimize_partition()
+
+	def get_objective_function(self):
+		clusters = [[] for _ in range(self.c)]
+		for key in self.elements.keys():
+			clusters[self.elements[key]].append(key)
+
+		energy = 0
+		for i in range(0, self.c):
+			for k in range(len(clusters[i])):
+				energy += 2*(1 - f.gaussian_kernel(self.weights, np.array(self.view.iloc[clusters[i][k]]),
+					np.array(self.prototypes[i])))
+
+		return energy
+
 
 	def initialize_parameters(self):
 		#Number of variables
@@ -36,8 +50,8 @@ class Partition:
 		# print("prots iniciais")
 		# print(self.prototypes)
 
-		print("pesos iniciais")
-		print(self.weights)
+		# print("pesos iniciais")
+		# print(self.weights)
 
 
 	def initialize_partitions(self):
@@ -66,18 +80,18 @@ class Partition:
 		test = 1
 		ite = 1
 		while(test):
-			print(ite)
+			# print(ite)
 			ite += 1
 			clusters = [[] for _ in range(self.c)]
 			for key in self.elements.keys():
 				clusters[self.elements[key]].append(key)
 
-			print("calculando melhores prototipos")
+			# print("calculando melhores prototipos")
 			self.update_prototypes(clusters)
-			print("calculando hiper parametros")
+			# print("calculando hiper parametros")
 			self.update_weights(clusters)
 
-			print("alocando nas particoes")
+			# print("alocando nas particoes")
 			test = 0
 			for k in range(0, len(self.view)):
 				dist = float("inf")
@@ -96,11 +110,7 @@ class Partition:
 
 				self.elements[k] = nearest_cluster
 
-		print("achou minimo local")
-		with open('result.json', 'w') as fp:
-    		json.dump(self.elements, fp)
-
-
+		print(str(ite) + " iteracoes ate minimo local")
 
 	def update_prototypes(self, clusters):
 		for i in range(0, self.c):
@@ -112,13 +122,14 @@ class Partition:
 				num   += kernel * self.view.iloc[clusters[i][j]]
 				denom += kernel
 
-			self.prototypes[i] = num / denom
+			if(denom != 0):
+				self.prototypes[i] = num / denom
 
 	def update_weights(self, cluster):
 		new_weights = self.p*[None]
 
 		for j in range(0, self.p):
-			print("otimizando parametro " + str(j) + " de " + str(self.p))
+			# print("otimizando parametro " + str(j) + " de " + str(self.p))
 			produtorio = 1
 			denominador = 0
 			flag = 1
@@ -146,11 +157,37 @@ class Partition:
 			produto = (self.gamma**(1/self.p)) * (produtorio **(1/self.p))
 			new_weights[j] = produto/denominador
 
-		print("pesos atualizados")
-		print(new_weights)
+		# print("pesos atualizados")
+		# print(new_weights)
 		self.weights = new_weights
 
+	def get_result(self):
+		return self.elements
+
+	def get_partition_rand_index(self, true_labels):
+		pred_labels = len(self.view)*[None]
+		for i, key in enumerate(sorted(self.elements)):
+			pred_labels[i] = self.elements[key]
+
+		return adjusted_rand_score(true_labels, pred_labels)
+
+data = pd.read_csv("iris.data", sep=",")
 view = data.drop(axis=1, columns = ["CLASS"])
 groups_class = data["CLASS"]
 
-part = Partition(7, view)
+part = Partition(3, view)
+
+best_energy = float("inf")
+for i in range(0, 100):
+	print(str(i))
+	part.run()
+	energy = part.get_objective_function()
+	if(energy < best_energy):
+		best_energy = energy
+		best_energy_ari = part.get_partition_rand_index(groups_class)
+		best_result = part.get_result()
+
+print("Melhor Energia " + str(energy))
+print("ARI " + str(best_energy_ari))
+with open('result.json', 'w') as fp:
+	json.dump(best_result, fp)
