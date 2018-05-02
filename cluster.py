@@ -23,9 +23,10 @@ class Partition:
 			clusters[self.elements[key]].append(key)
 
 		energy = 0
-		for i in range(0, self.c):
-			for k in range(len(clusters[i])):
-				energy += 2*(1 - f.gaussian_kernel(self.weights, np.array(self.view.iloc[clusters[i][k]]),
+		for i in range(self.c):
+			k_lim = len(clusters[i])
+			for k in range(k_lim):
+				energy += (1 - f.gaussian_kernel(self.weights, np.array(self.view.iloc[clusters[i][k]]),
 					np.array(self.prototypes[i])))
 
 		return energy
@@ -34,16 +35,18 @@ class Partition:
 	def initialize_parameters(self):
 		#Number of variables
 		self.p = len(self.view.columns)
+		#Number of rows
+		self.rows = len(self.view)
 		#A suitable parameter
 		self.gamma = (1/f.sigma_squared(self.view.as_matrix()))**self.p
 		#Global weights for each variable
 		self.weights = self.p*[None]
 		#Initialize weights
-		for i in range(0, self.p):
+		for i in range(self.p):
 			self.weights[i] = self.gamma**(1/self.p)
 
 		#Set initial random prototypes
-		random_sample = self.view.sample(frac=1)[0:7]
+		random_sample = self.view.sample(frac=1)[0:(self.c)]
 		self.prototypes = random_sample.as_matrix()
 		self.initial_prototypes = random_sample.index.values
 
@@ -57,13 +60,11 @@ class Partition:
 	def initialize_partitions(self):
 		self.elements = {}
 
-		el_not_prot = list(set(range(0, len(view))) - set(self.initial_prototypes))
-
-		for el in el_not_prot:
+		for el in range(self.rows):
 			dist = float("inf")
 			nearest_cluster = 0
 
-			for h in range(0, self.c):
+			for h in range(self.c):
 				#Kernel between element and cluster prototype
 				x = 2*(1 - f.gaussian_kernel(self.weights, np.array(self.view.iloc[el]),
 					np.array(self.prototypes[h])))
@@ -78,7 +79,7 @@ class Partition:
 	#Returns partition energy
 	def optimize_partition(self):
 		test = 1
-		ite = 1
+		ite = 0
 		while(test):
 			# print(ite)
 			ite += 1
@@ -93,51 +94,54 @@ class Partition:
 
 			# print("alocando nas particoes")
 			test = 0
-			for k in range(0, len(self.view)):
+			for k in range(self.rows):
 				dist = float("inf")
 				nearest_cluster = 0
 				#Kernel between element and cluster prototype
-				for h in range(0, self.c):
+				for h in range(self.c):
 					x = 2*(1 - f.gaussian_kernel(self.weights, np.array(self.view.iloc[k]),
 						np.array(self.prototypes[h])))
 					if (x < dist):
 						nearest_cluster = h
 						dist = x
 
-				if(k in self.elements):
-					if(nearest_cluster != self.elements[k]):
-						test = 1
-
-				self.elements[k] = nearest_cluster
+				# if(k in self.elements):
+				if(nearest_cluster != self.elements[k]):
+					test = 1
+					self.elements[k] = nearest_cluster
 
 		print(str(ite) + " iteracoes ate minimo local")
 
 	def update_prototypes(self, clusters):
-		for i in range(0, self.c):
+		for i in range(self.c):
 			#Do not fool yourself: Numerator is a vector
 			num  =  0
 			denom = 0
-			for j in range(0, len(clusters[i])):
+			j_lim = len(clusters[i])
+			for j in range(j_lim):
 				kernel = f.gaussian_kernel(self.weights, self.view.iloc[clusters[i][j]], self.prototypes[i])
 				num   += kernel * self.view.iloc[clusters[i][j]]
 				denom += kernel
 
 			if(denom != 0):
 				self.prototypes[i] = num / denom
+			else:
+				print("denominador igual a zero no update do prototipo!")
 
 	def update_weights(self, cluster):
 		new_weights = self.p*[None]
 
-		for j in range(0, self.p):
+		for j in range(self.p):
 			# print("otimizando parametro " + str(j) + " de " + str(self.p))
 			produtorio = 1
 			denominador = 0
 			flag = 1
 
-			for h in range(0, self.p):
+			for h in range(self.p):
 				numerador = 0
-				for i in range(0, self.c):
-					for k in range(0, len(cluster[i])):
+				for i in range(self.c):
+					k_lim = len(cluster[i])
+					for k in range(k_lim):
 						#An Element from cluster
 						x_k = np.array(self.view.iloc[cluster[i][k]])
 						#Prototype from cluster
@@ -165,7 +169,7 @@ class Partition:
 		return self.elements
 
 	def get_partition_rand_index(self, true_labels):
-		pred_labels = len(self.view)*[None]
+		pred_labels = self.rows*[None]
 		for i, key in enumerate(sorted(self.elements)):
 			pred_labels[i] = self.elements[key]
 
@@ -178,8 +182,8 @@ groups_class = data["CLASS"]
 part = Partition(3, view)
 
 best_energy = float("inf")
-for i in range(0, 100):
-	print(str(i))
+for i in range(0, 5):
+	print("iteracao " + str(i))
 	part.run()
 	energy = part.get_objective_function()
 	if(energy < best_energy):
@@ -187,7 +191,7 @@ for i in range(0, 100):
 		best_energy_ari = part.get_partition_rand_index(groups_class)
 		best_result = part.get_result()
 
-print("Melhor Energia " + str(energy))
+print("Melhor Energia " + str(2*energy))
 print("ARI " + str(best_energy_ari))
 with open('result.json', 'w') as fp:
 	json.dump(best_result, fp)
