@@ -4,6 +4,7 @@ from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.metrics import adjusted_rand_score
 import functions as f
 import json
+import time
 
 class Partition:
 	def __init__(self, nclusters, view):
@@ -59,6 +60,8 @@ class Partition:
 
 	def initialize_partitions(self):
 		self.elements = {}
+		self.clusters = [[] for _ in range(self.c)]
+		self.item_to_position = clusters = [{} for _ in range(self.c)]
 
 		for el in range(self.rows):
 			dist = float("inf")
@@ -74,6 +77,8 @@ class Partition:
 					dist = x
 
 			self.elements[el] = nearest_cluster
+			self.clusters[nearest_cluster].append(el)
+			self.item_to_position[nearest_cluster][el] = len(self.clusters[nearest_cluster])-1
 
 	#Compute best prototypes and best hyper parameters
 	#Returns partition energy
@@ -83,14 +88,14 @@ class Partition:
 		while(test):
 			# print(ite)
 			ite += 1
-			clusters = [[] for _ in range(self.c)]
-			for key in self.elements.keys():
-				clusters[self.elements[key]].append(key)
+			# clusters = [[] for _ in range(self.c)]
+			# for key in self.elements.keys():
+			# 	clusters[self.elements[key]].append(key)
 
 			# print("calculando melhores prototipos")
-			self.update_prototypes(clusters)
+			self.update_prototypes(self.clusters)
 			# print("calculando hiper parametros")
-			self.update_weights(clusters)
+			self.update_weights(self.clusters)
 
 			# print("alocando nas particoes")
 			test = 0
@@ -108,7 +113,19 @@ class Partition:
 				# if(k in self.elements):
 				if(nearest_cluster != self.elements[k]):
 					test = 1
+					nearest_cluster_old = self.elements[k]
 					self.elements[k] = nearest_cluster
+					# adicionando no novo cluster
+					self.clusters[nearest_cluster].append(k)
+					self.item_to_position[nearest_cluster][k] = len(self.clusters[nearest_cluster])-1
+
+					# removendo do antigo cluster
+					position = self.item_to_position[nearest_cluster_old].pop(k)
+					last_item = self.clusters[nearest_cluster_old].pop()
+					if position != len(self.clusters[nearest_cluster_old]):
+						self.clusters[nearest_cluster_old][position] = last_item
+						self.item_to_position[nearest_cluster_old][last_item] = position
+
 
 		print(str(ite) + " iteracoes ate minimo local")
 
@@ -182,7 +199,9 @@ groups_class = data["CLASS"]
 part = Partition(3, view)
 
 best_energy = float("inf")
-for i in range(0, 5):
+
+tempo1 = time.time()
+for i in range(0, 100):
 	print("iteracao " + str(i))
 	part.run()
 	energy = part.get_objective_function()
@@ -190,6 +209,10 @@ for i in range(0, 5):
 		best_energy = energy
 		best_energy_ari = part.get_partition_rand_index(groups_class)
 		best_result = part.get_result()
+
+tempo2 = time.time()
+
+print(tempo2-tempo1)
 
 print("Melhor Energia " + str(2*energy))
 print("ARI " + str(best_energy_ari))
