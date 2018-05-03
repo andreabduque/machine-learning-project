@@ -5,6 +5,7 @@ from sklearn.metrics import adjusted_rand_score
 import functions as f
 import json
 import time
+from multiprocessing import Pool
 
 class Partition:
 	def __init__(self, nclusters, view):
@@ -17,6 +18,7 @@ class Partition:
 		self.initialize_partitions()
 		# print("otimizando")
 		self.optimize_partition()
+		print("fim algoritmo")
 
 	def get_objective_function(self):
 		clusters = [[] for _ in range(self.c)]
@@ -127,7 +129,7 @@ class Partition:
 						self.item_to_position[nearest_cluster_old][last_item] = position
 
 
-		print(str(ite) + " iteracoes ate minimo local")
+		# print(str(ite) + " iteracoes ate minimo local")
 
 	def update_prototypes(self, clusters):
 		for i in range(self.c):
@@ -148,39 +150,25 @@ class Partition:
 	def update_weights(self, cluster):
 		new_weights = self.p*[None]
 
-		for j in range(self.p):
-			# print("otimizando parametro " + str(j) + " de " + str(self.p))
-			produtorio = 1
-			denominador = 0
-			flag = 1
+		vetor_somas = np.zeros(self.p)
+		#Calculo denominador
+		for h in range(self.p):
+			sum_kernels = 0			
+			for i in range(self.c):
+				k_lim = len(cluster[i])
+				for k in range(k_lim):
+					#An Element from cluster
+					x_k = np.array(self.view.iloc[cluster[i][k]])
+					#Prototype from cluster
+					g_i =  self.prototypes[i]		
 
-			for h in range(self.p):
-				numerador = 0
-				for i in range(self.c):
-					k_lim = len(cluster[i])
-					for k in range(k_lim):
-						#An Element from cluster
-						x_k = np.array(self.view.iloc[cluster[i][k]])
-						#Prototype from cluster
-						g_i =  self.prototypes[i]
-						#Numerator
-						parcela_gaussiana = f.gaussian_kernel(self.weights, x_k, g_i)
-						segunda_parcela_numerador = (x_k[h] - g_i[h])**2
-						numerador += parcela_gaussiana * segunda_parcela_numerador
+					sum_kernels += f.gaussian_kernel(self.weights, x_k, g_i) * (x_k[h] - g_i[h]) * (x_k[h] - g_i[h])
 
-						#Denominator
-						if(flag == 1):
-							segunda_parcela_denominador = (x_k[j] - g_i[j])**2
-							denominador += parcela_gaussiana * segunda_parcela_denominador
-				flag = 0
-				produtorio *= numerador
 
-			produto = (self.gamma**(1/self.p)) * (produtorio **(1/self.p))
-			new_weights[j] = produto/denominador
+			vetor_somas[h] = sum_kernels
 
-		# print("pesos atualizados")
-		# print(new_weights)
-		self.weights = new_weights
+		numerador = (self.gamma**(1/self.p))*np.prod(vetor_somas**(1/self.p))
+		self.weights = np.divide(numerador, vetor_somas)
 
 	def get_result(self):
 		return self.elements
@@ -192,29 +180,66 @@ class Partition:
 
 		return adjusted_rand_score(true_labels, pred_labels)
 
+def get_clustering_result(it):
+	part = Partition(3, view)
+	part.run()
+	return (part.get_objective_function(), part.get_partition_rand_index(groups_class), part.initial_prototypes)
+	
+
 data = pd.read_csv("iris.data", sep=",")
 view = data.drop(axis=1, columns = ["CLASS"])
 groups_class = data["CLASS"]
 
-part = Partition(3, view)
 
-best_energy = float("inf")
+# <<<<<<< Updated upstream
+# best_energy = float("inf")
 
-tempo1 = time.time()
-for i in range(0, 100):
-	print("iteracao " + str(i))
-	part.run()
-	energy = part.get_objective_function()
-	if(energy < best_energy):
-		best_energy = energy
-		best_energy_ari = part.get_partition_rand_index(groups_class)
-		best_result = part.get_result()
+# tempo1 = time.time()
+# for i in range(0, 100):
+# 	print("iteracao " + str(i))
+# 	part.run()
+# 	energy = part.get_objective_function()
+# 	if(energy < best_energy):
+# 		best_energy = energy
+# 		best_energy_ari = part.get_partition_rand_index(groups_class)
+# 		best_result = part.get_result()
 
-tempo2 = time.time()
+# tempo2 = time.time()
 
-print(tempo2-tempo1)
+# print(tempo2-tempo1)
 
-print("Melhor Energia " + str(2*energy))
-print("ARI " + str(best_energy_ari))
-with open('result.json', 'w') as fp:
-	json.dump(best_result, fp)
+# print("Melhor Energia " + str(2*energy))
+# print("ARI " + str(best_energy_ari))
+# with open('result.json', 'w') as fp:
+# 	json.dump(best_result, fp)
+# =======
+# results = []
+# n_iter = range(100)
+# pool = Pool(100)
+before = time.time()
+
+with Pool(processes=5) as pool:
+	results = pool.map(get_clustering_result, 100*[None]) 
+
+# print(time.time() - before)
+print("Tempo " + str(time.time() - before))
+
+results.sort(key=lambda tup: tup[0])
+
+# print(results)
+
+# best_energy = float("inf")
+# before = time.time()
+# for i in range(0, 100):
+# 	# print("iteracao " + str(i))
+# 	part.run()
+# 	energy = part.get_objective_function()
+# 	if(energy < best_energy):
+# 		best_energy = energy
+# 		best_energy_ari = part.get_partition_rand_index(groups_class)
+# 		best_result = part.get_result()
+
+print("Melhor Energia " + str(2*results[0][0]))
+print("ARI " + str(results[0][1]))
+print("Prototipos")
+print(results[0][2])

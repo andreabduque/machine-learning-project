@@ -3,9 +3,7 @@ from sklearn.metrics.pairwise import euclidean_distances
 
 #Receives a vector of wweights and two vectors of different instances
 def gaussian_kernel(global_weights, x, y):
-	argument = 0
-	for p_j, weight in enumerate(global_weights):
-		argument += weight*(x[p_j] - y[p_j])**2
+	argument = np.dot( (np.array(x) - np.array(y))*(np.array(x) - np.array(y)), global_weights)
 
 	return np.exp((-1/2)*argument)
 
