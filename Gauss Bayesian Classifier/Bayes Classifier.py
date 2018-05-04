@@ -4,7 +4,8 @@ from math import exp
 
 d=18
 data = pd.read_csv('segmentation1.csv')
-data_x = pd.read_csv('x.csv')
+data_x = data.drop(axis=1, columns = ["CLASS"]) # <-- novo, é isso que tu queria né?
+# data_x = pd.read_csv('x.csv') <-- antigo
 classes = ["BRICKFACE", "SKY", "FOLIAGE", "CEMENT", "WINDOW", "PATH", "GRASS"]
 c = len(classes)
 
