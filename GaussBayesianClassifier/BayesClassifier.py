@@ -30,6 +30,22 @@ class BayesClassifier:
             mean[i] = np.array(data.loc[data["CLASS"]==classe].mean())
         self.mean = mean
         return
+
+        # view = np.array(data_x)
+        # n = len(view)
+        # qtd_columns = view.shape[1]
+        # self.cov = np.zeros((qtd_columns, qtd_columns))
+
+        # x_k = np.empty((1, n))
+        # for i in range(0, n):
+        #     x_k[i] = np.cross(view[i], view[i])
+        # media_x_k = np.sum(x_k)/n
+
+        # for i in range(0, d):
+        #     self.mean[i] = np.cross(np.mean(view[:, i]), np.mean(view[:, i]))
+        #     self.cov[i][i] = media_x_k - n * self.mean[i]
+        
+        # return
     
     def classify(self, x): #Entra np.array
         inv_covar = np.linalg.inv(self.covariance)
