@@ -32,18 +32,19 @@ class BayesClassifier:
         return
 
         # view = np.array(data_x)
-        # n = len(view)
+        # n = view.shape[0]
         # qtd_columns = view.shape[1]
-        # self.cov = np.zeros((qtd_columns, qtd_columns))
 
         # x_k = np.empty((1, n))
         # for i in range(0, n):
         #     x_k[i] = np.cross(view[i], view[i])
         # media_x_k = np.sum(x_k)/n
 
+        # self.covariance = np.zeros((qtd_columns, qtd_columns))
+        # self.mean = np.zeros(qtd_columns)
         # for i in range(0, d):
         #     self.mean[i] = np.cross(np.mean(view[:, i]), np.mean(view[:, i]))
-        #     self.cov[i][i] = media_x_k - n * self.mean[i]
+        #     self.covariance[i][i] = media_x_k - n * self.mean[i]
         
         # return
     
