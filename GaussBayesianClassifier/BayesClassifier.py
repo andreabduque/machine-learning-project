@@ -13,41 +13,43 @@ class BayesClassifier:
         return
         
     def parameters(self,data): #Entra DataFrame
+        # self.classes = data["CLASS"].value_counts().to_dict()
+        # data_x = data.drop(axis=1, columns = ["CLASS"])
+        # d = len(data_x.iloc[0])
+        # self.covariance = np.array(data_x.cov())
+        # #SHIT
+        # for i in range(d):
+        #     for j in range(d):
+        #         if i!=j:
+        #             self.covariance[i,j]=0
+        # #SHIT
+        # mean = np.zeros((len(self.classes),d))
+        # for i,classe in enumerate(self.classes):
+        #     mean[i] = np.array(data.loc[data["CLASS"]==classe].mean())
+        # self.mean = mean
+        # return
+
         self.classes = data["CLASS"].value_counts().to_dict()
         data_x = data.drop(axis=1, columns = ["CLASS"])
         d = len(data_x.iloc[0])
-        self.covariance = np.array(data_x.cov())
-        #SHIT
-        for i in range(d):
-            for j in range(d):
-                if i!=j:
-                    self.covariance[i,j]=0
-        #SHIT
         mean = np.zeros((len(self.classes),d))
+        covariance = np.zeros((len(self.classes), d, d)) # melhorar isso dinamicamente
         for i,classe in enumerate(self.classes):
-            mean[i] = np.array(data.loc[data["CLASS"]==classe].mean())
+            classes = np.array(data.loc[data["CLASS"]==classe])
+            qtd_rows = len(classes)
+            mean[i] = data.loc[data["CLASS"]==classe].mean()
+
+            x_k = qtd_rows * [None]
+            for j in range(0, qtd_rows):
+                x_k[j] = np.dot(classes[j], classes[j])
+            media_x_k = np.sum(x_k)/qtd_rows
+
+            for j in range(0, d):
+                covariance[i][j][j] = media_x_k - qtd_rows * self.mean[j]
         self.mean = mean
+        self.covariance = covariance
+
         return
-
-        # d = len(data_x.iloc[0])
-        # media_x_k = classes * [None]
-        # mean = np.zeros((len(self.classes),d))
-        # covariance = np.zeros((self.classes, 300, qtd_columns)) # melhorar isso dinamicamente
-        # x_k = len(classes) * [None]
-        # for i,classe in enumerate(self.classes):
-        #     classes = np.array(data.loc[data["CLASS"]==classe])
-        #     qtd_rows = len(classes)
-        #     mean[i] = data.loc[data["CLASS"]==classe].mean()
-
-        #     x_k = qtd_rows * [None]
-        #     for j in range(0, qtd_rows):
-        #         x_k = np.cross(classes[j], classes[j])
-        #     media_x_k = np.sum(x_k)/qtd_rows
-
-        #     for j in range(0, d)
-        #         covariance[i][j][j] = media_x_k - qtd_rows * self.mean[j]
-        # self.mean = mean
-        # self.covariance = covariance
 
         # view = np.array(data_x)
         # n = view.shape[0]
@@ -67,11 +69,12 @@ class BayesClassifier:
         # return
     
     def classify(self, x): #Entra np.array
-        inv_covar = np.linalg.inv(self.covariance)
+        
         d = len(x)
         p_x_w = np.zeros(len(self.classes))
         p_w_x = np.zeros(len(self.classes))
         for i in range(len(self.classes)):
+            inv_covar = np.linalg.inv(self.covariance[i])
             p_x_w[i] = ((2*3.1415)**-d/2)*((np.linalg.det(inv_covar))**0.5)*exp(-0.5*(np.matmul(np.matmul((x-self.mean[i]),inv_covar),(x-self.mean[i])))) 
         p_w_x = p_x_w/p_x_w.sum()
         return(list(self.classes.keys())[np.argmax(p_w_x)])
