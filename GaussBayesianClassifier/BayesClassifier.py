@@ -3,6 +3,7 @@ import pandas as pd
 from math import exp
 import random
 from sklearn.model_selection import StratifiedKFold
+import math
 
 class BayesClassifier:
     
@@ -35,8 +36,9 @@ class BayesClassifier:
         mean = np.zeros((len(self.classes),d))
         covariance = np.zeros((len(self.classes), d, d)) # melhorar isso dinamicamente
         for i,classe in enumerate(self.classes):
-            classes = np.array(data.loc[data["CLASS"]==classe])
+            classes = np.array(data_x.loc[data["CLASS"]==classe])
             qtd_rows = len(classes)
+            # print(qtd_rows) isso imprime 270 ao invés de 300
             mean[i] = data.loc[data["CLASS"]==classe].mean()
 
             x_k = qtd_rows * [None]
@@ -45,7 +47,7 @@ class BayesClassifier:
             media_x_k = np.sum(x_k)/qtd_rows
 
             for j in range(0, d):
-                covariance[i][j][j] = media_x_k - qtd_rows * self.mean[j]
+                covariance[i][j][j] = media_x_k - qtd_rows * np.dot(mean[i], mean[i])
         self.mean = mean
         self.covariance = covariance
 
@@ -75,7 +77,7 @@ class BayesClassifier:
         p_w_x = np.zeros(len(self.classes))
         for i in range(len(self.classes)):
             inv_covar = np.linalg.inv(self.covariance[i])
-            p_x_w[i] = ((2*3.1415)**-d/2)*((np.linalg.det(inv_covar))**0.5)*exp(-0.5*(np.matmul(np.matmul((x-self.mean[i]),inv_covar),(x-self.mean[i])))) 
+            p_x_w[i] = ((2*math.pi)**-d/2)*((np.linalg.det(inv_covar))**0.5)*exp(-0.5*(np.matmul(np.matmul((x-self.mean[i]),inv_covar),(x-self.mean[i])))) 
         p_w_x = p_x_w/p_x_w.sum()
         return(list(self.classes.keys())[np.argmax(p_w_x)])
     
