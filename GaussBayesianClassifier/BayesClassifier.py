@@ -42,7 +42,7 @@ class BayesClassifier:
 
         # self.covariance = np.zeros((qtd_columns, qtd_columns))
         # self.mean = np.zeros(qtd_columns)
-        # for i in range(0, d):
+        # for i in range(0, qtd_columns):
         #     self.mean[i] = np.cross(np.mean(view[:, i]), np.mean(view[:, i]))
         #     self.covariance[i][i] = media_x_k - n * self.mean[i]
         
