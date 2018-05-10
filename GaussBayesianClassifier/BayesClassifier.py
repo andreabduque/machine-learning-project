@@ -9,12 +9,10 @@ class BayesClassifier:
     def __init__(self):
         self.covariance = None
         self.mean = None
-        self.N = 0
         self.classes = None
         return
         
     def parameters(self,data): #Entra DataFrame
-        self.N = len(data)
         self.classes = data["CLASS"].value_counts().to_dict()
         data_x = data.drop(axis=1, columns = ["CLASS"])
         d = len(data_x.iloc[0])
@@ -50,12 +48,13 @@ class BayesClassifier:
     
     def classify(self, x): #Entra np.array
         inv_covar = np.linalg.inv(self.covariance)
-        g_x = np.zeros(len(self.classes))
-        p_c = np.zeros(len(self.classes))
-        for i,classe in enumerate(self.classes):
-            p_c[i] = self.classes[classe]/self.N
-            g_x[i] = (-0.5*(np.matmul(np.matmul((x-self.mean[i]),inv_covar),(x-self.mean[i])))) + np.log(p_c[i]) 
-        return(list(self.classes.keys())[np.argmax(g_x)])
+        d = len(x)
+        p_x_w = np.zeros(len(self.classes))
+        p_w_x = np.zeros(len(self.classes))
+        for i in range(len(self.classes)):
+            p_x_w[i] = ((2*3.1415)**-d/2)*((np.linalg.det(inv_covar))**0.5)*exp(-0.5*(np.matmul(np.matmul((x-self.mean[i]),inv_covar),(x-self.mean[i])))) 
+        p_w_x = p_x_w/p_x_w.sum()
+        return(list(self.classes.keys())[np.argmax(p_w_x)])
     
     def accuracy(self,Test): #Entra DataFrame
         coef = 0
