@@ -29,6 +29,26 @@ class BayesClassifier:
         self.mean = mean
         return
 
+        # d = len(data_x.iloc[0])
+        # media_x_k = classes * [None]
+        # mean = np.zeros((len(self.classes),d))
+        # covariance = np.zeros((self.classes, 300, qtd_columns)) # melhorar isso dinamicamente
+        # x_k = len(classes) * [None]
+        # for i,classe in enumerate(self.classes):
+        #     classes = np.array(data.loc[data["CLASS"]==classe])
+        #     qtd_rows = len(classes)
+        #     mean[i] = data.loc[data["CLASS"]==classe].mean()
+
+        #     x_k = qtd_rows * [None]
+        #     for j in range(0, qtd_rows):
+        #         x_k = np.cross(classes[j], classes[j])
+        #     media_x_k = np.sum(x_k)/qtd_rows
+
+        #     for j in range(0, d)
+        #         covariance[i][j][j] = media_x_k - qtd_rows * self.mean[j]
+        # self.mean = mean
+        # self.covariance = covariance
+
         # view = np.array(data_x)
         # n = view.shape[0]
         # qtd_columns = view.shape[1]
