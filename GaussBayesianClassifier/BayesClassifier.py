@@ -4,6 +4,7 @@ from math import exp
 import random
 from sklearn.model_selection import StratifiedKFold
 import math
+import pdb
 
 class BayesClassifier:
     
@@ -36,6 +37,7 @@ class BayesClassifier:
         mean = np.zeros((len(self.classes),d))
         covariance = np.zeros((len(self.classes), d, d)) # melhorar isso dinamicamente
         for i,classe in enumerate(self.classes):
+            # pdb.set_trace()
             classes = np.array(data_x.loc[data["CLASS"]==classe])
             qtd_rows = len(classes)
             # print(qtd_rows) isso imprime 270 ao invés de 300
@@ -101,7 +103,7 @@ class BayesClassifier:
                 #print("TRAIN:", train_index, "TEST:", test_index)
                 self.parameters(df.loc[train_index])
                 media += self.accuracy(df.loc[test_index])
-            l.append(media/10)
+            l.append(media/k)
         return(l)
 
 #TESTE
