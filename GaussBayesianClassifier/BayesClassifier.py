@@ -19,19 +19,19 @@ class BayesClassifier:
         c = len(self.classes)
         data_x = data.drop(axis=1, columns = ["CLASS"])
         d = len(data_x.iloc[0])
-        self.covariance = np.zeros((c,d,d))
+        self.covariance = np.zeros((d,d))
         #SHIT
-        for i,classe in enumerate(self.classes):
-            for j in range(d):
-                self.covariance[i,j,j] = np.array(data.loc[data["CLASS"]==classe].cov())[j,j]
+        for j in range(d):
+            self.covariance[j,j] = np.array(data.cov())[j,j]
         #SHIT
         mean = np.zeros((len(self.classes),d))
         for i,classe in enumerate(self.classes):
             mean[i] = np.array(data.loc[data["CLASS"]==classe].mean())
         self.mean = mean
-        print(self.mean)
-        print(self.covariance)
         return
+
+
+
 
         # self.classes = data["CLASS"].value_counts().to_dict()
         # data_x = data.drop(axis=1, columns = ["CLASS"])
@@ -54,8 +54,12 @@ class BayesClassifier:
         #         covariance[i][j][j] = media_x_k - qtd_rows * np.dot(mean[i], mean[i])
         # self.mean = mean
         # self.covariance = covariance
+        # print(self.mean,self.covariance)
 
-        #return
+        # return
+
+
+
 
         # view = np.array(data_x)
         # n = view.shape[0]
@@ -79,8 +83,9 @@ class BayesClassifier:
         d = len(x)
         p_x_w = np.zeros(len(self.classes))
         p_w_x = np.zeros(len(self.classes))
+        inv_covar = np.linalg.inv(self.covariance)
         for i in range(len(self.classes)):
-            inv_covar = np.linalg.inv(self.covariance[i])
+            
             p_x_w[i] = ((2*math.pi)**-d/2)*((np.linalg.det(inv_covar))**0.5)*exp(-0.5*(np.matmul(np.matmul((x-self.mean[i]),inv_covar),(x-self.mean[i])))) 
         p_w_x = p_x_w/p_x_w.sum()
         return(list(self.classes.keys())[np.argmax(p_w_x)])
@@ -114,4 +119,5 @@ class BayesClassifier:
 #TESTE
 df = pd.read_csv('segmentation1.csv')
 modelo = BayesClassifier()
+#modelo.parameters(df)
 print(modelo.KfoldNtimes(10,30,df))
