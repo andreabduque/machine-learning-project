@@ -4,7 +4,7 @@ from math import exp
 import random
 from sklearn.model_selection import StratifiedKFold
 import math
-import pdb
+import pdb # pdb.set_trace()
 
 class BayesClassifier:
     
@@ -14,23 +14,7 @@ class BayesClassifier:
         self.classes = None
         return
         
-    def parameters(self,data): #Entra DataFrame
-        # self.classes = data["CLASS"].value_counts().to_dict()
-        # c = len(self.classes)
-        # data_x = data.drop(axis=1, columns = ["CLASS"])
-        # d = len(data_x.iloc[0])
-        # self.covariance = np.zeros((d,d))
-        # #SHIT
-        # for j in range(d):
-        #     self.covariance[j,j] = np.array(data.cov())[j,j]
-        # #SHIT
-        # mean = np.zeros((len(self.classes),d))
-        # for i,classe in enumerate(self.classes):
-        #     mean[i] = np.array(data.loc[data["CLASS"]==classe].mean())
-        # self.mean = mean
-        # return
-
-
+    def parameters(self, data): #Entra DataFrame
         self.classes = data["CLASS"].value_counts().to_dict()
         data_x = data.drop(axis=1, columns = ["CLASS"])
         d = len(data_x.iloc[0])
@@ -51,48 +35,28 @@ class BayesClassifier:
             covariance[i] = x_k - qtd_rows*mi_k
         self.mean = mean
         self.covariance = covariance
-        print(type(self.mean),type(self.covariance))
-
-
-        # view = np.array(data_x)
-        # n = view.shape[0]
-        # qtd_columns = view.shape[1]
-
-        # x_k = np.empty((1, n))
-        # for i in range(0, n):
-        #     x_k[i] = np.cross(view[i], view[i])
-        # media_x_k = np.sum(x_k)/n
-
-        # self.covariance = np.zeros((qtd_columns, qtd_columns))
-        # self.mean = np.zeros(qtd_columns)
-        # for i in range(0, qtd_columns):
-        #     self.mean[i] = np.cross(np.mean(view[:, i]), np.mean(view[:, i]))
-        #     self.covariance[i][i] = media_x_k - n * self.mean[i]
-        
-        # return
     
     def classify(self, x): #Entra np.array
-        
         d = len(x)
         p_x_w = np.zeros(len(self.classes))
         p_w_x = np.zeros(len(self.classes))
-        inv_covar = np.linalg.inv(self.covariance)
         for i in range(len(self.classes)):
-            a = ((2*math.pi)**-d/2)
-            b = ((np.linalg.det(inv_covar))**0.5)
-            c = np.multiply((np.matrix(x)-self.mean[i]),inv_covar[i])
-            e = np.matrix(x-self.mean[i]).T
-            d = np.multiply(c,e)
-            print("-------------")
-            print(c.shape)
-            print("-------------")
-            expo = exp(-0.5*d)
-            p_x_w[i] = a*b*expo
+            inv_covar = np.linalg.inv(self.covariance[i]) * np.identity(d)
+
+            left = ((2*math.pi)**-d/2)
+            mid = (np.linalg.det(inv_covar)**0.5)
+
+            left_exp = (np.matrix(x)-np.matrix(self.mean[i]))
+            product_left = np.matmul(left_exp, inv_covar)
+            right_exp = np.matrix(x-self.mean[i]).T
+            right = np.dot(product_left, right_exp)
+            
+            p_x_w[i] = left*mid*exp(-0.5*right)
             #p_x_w[i] = ((2*math.pi)**-d/2)*((np.linalg.det(inv_covar))**0.5)*exp(-0.5*(np.matmul(np.matmul((x-self.mean[i]),inv_covar),(x-self.mean[i])))) 
         p_w_x = p_x_w/p_x_w.sum()
         return(list(self.classes.keys())[np.argmax(p_w_x)])
     
-    def accuracy(self,Test): #Entra DataFrame
+    def accuracy(self, Test): #Entra DataFrame
         coef = 0
         data_x = Test.drop(axis=1, columns = ["CLASS"])
         for i in Test.index.tolist(): #Retorna lista dos indices de treinamento
@@ -101,7 +65,7 @@ class BayesClassifier:
                 coef += 1 #Conta o acerto
         return coef/len(Test) #Numero de acertos pelo número total de classificações
     
-    def KfoldNtimes(self,k,n,data): #k = numero de subconjuntos; n = N times
+    def KfoldNtimes(self, k, n, data): #k = numero de subconjuntos; n = N times
         X = np.array(data.drop(axis=1, columns = ["CLASS"]))
         y = np.array(data["CLASS"])
         skf = StratifiedKFold(n_splits=k,shuffle=True) #Classe que Andrea achou que realiza o "K Fold N times"
@@ -119,7 +83,7 @@ class BayesClassifier:
         return(l)
 
 #TESTE
-df = pd.read_csv('iris.data',sep=',')
+df = pd.read_csv('iris.data')
 #df = pd.read_csv('segmentation1.csv')
 modelo = BayesClassifier()
 #modelo.parameters(df)
