@@ -15,7 +15,7 @@ class Parzen:
 
     def parameters(self, data):
         # self.h = self.init_h(data)[4] # metade do array
-        self.h = 0.2
+        self.h = 0.8
         self.data = data
         self.n = data.shape[0]
         self.p = data.shape[1]
@@ -54,12 +54,14 @@ class Parzen:
         return self.classes[np.argmax(p_w_x)]
 
     def accuracy(self, training, Test): #Entra DataFrame
+        cont = 0
         coef = 0
         data_x = Test.drop(axis=1, columns = ["CLASS"])
         for i in Test.index.tolist(): #Retorna lista dos indices de treinamento
             if self.prob(training, np.array(data_x.loc[i])) == Test.loc[i,"CLASS"]: # Se o classificador classificar corretamente
                 coef += 1 #Conta o acerto
-
+            cont += 1
+            print(cont)
         return coef/len(Test) #Numero de acertos pelo número total de classificações
 
     def estimate_h(self, data, k = 5, n = 1): #k = numero de subconjuntos; n = N times
@@ -68,21 +70,20 @@ class Parzen:
         skf = StratifiedKFold(n_splits=k,shuffle=True) #Classe que Andrea achou que realiza o "K Fold N times"
         skf.get_n_splits(X, y)
         l = []
-        for i in range(n):
-            media = 0
-            train_index =[]
-            test_index = []
-            for i, j in skf.split(X, y):
-                train_index = i
-                test_index = j
-                break
+        media = 0
+        train_index =[]
+        test_index = []
+        for i, j in skf.split(X, y):
+            train_index = i
+            test_index = j
+            break
 
-            for index in test_index:
-                self.parameters(data.loc[train_index])
-                # self.prob(data.loc[train_index], data.loc[index]) #Estimação dos parametros da distribuição normal a partir dos dados de treinamento
-                media += self.accuracy(data.loc[train_index], data.loc[test_index]) #Soma das acurácias de cada subconjunto de teste
-            l.append(media/len(test_index)) #média de cada i-Times
-        return(l)
+        # for index in test_index:
+        self.parameters(data.loc[train_index])
+            # self.prob(data.loc[train_index], data.loc[index]) #Estimação dos parametros da distribuição normal a partir dos dados de treinamento
+        return(self.accuracy(data.loc[train_index], data.loc[test_index])) #Soma das acurácias de cada subconjunto de teste
+        #     l.append(media/len(test_index)) #média de cada i-Times
+        # return(l)
 
     def KfoldNtimes(self, data, k = 5, n = 1): #k = numero de subconjuntos; n = N times
         X = np.array(data.drop(axis=1, columns = ["CLASS"]))
@@ -101,7 +102,7 @@ class Parzen:
         return(l)
 
 #TESTE
-# df = pd.read_csv('segmentation1.csv')
-df = pd.read_csv('iris.data')
+df = pd.read_csv('segmentation1.csv')
+# df = pd.read_csv('iris.data')
 modelo = Parzen(df)
 print(modelo.estimate_h(df))
