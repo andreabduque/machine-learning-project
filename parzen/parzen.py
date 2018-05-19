@@ -14,8 +14,8 @@ class Parzen:
         return
 
     def parameters(self, data):
-        # self.h = self.init_h(data)[4] # metade do array
-        self.h = 0.8
+        self.h = 0
+        self.h_vector = self.init_h(5)
         self.data = data
         self.n = data.shape[0]
         self.p = data.shape[1]
@@ -23,24 +23,20 @@ class Parzen:
     def kernel(self, x):
         return (1/((2*math.pi)**(1/2)))*math.exp(-x*x/2)
 
-    def init_h(self, data):
-        return [0.04*int(10*random.random()) for i in range(10)] # estudarcomo melhorara a convergencia ~ em função do conjunto de validação
+    def init_h(self, n):
+        return [5*random.random() for i in range(n)] # gerado entre 0 e 1 - se mostrou mais eficiente
 
-    def parzen(self, data, x):
+    def parzen(self, data, x, h):
         sum = data.shape[0] * [None]
         for i in range(data.shape[0]):
             prod = []
             for j in range(data.shape[1]):
-                try:
-                    prod.append(self.kernel((x[j] - data[i][j])/self.h))
-                except:
-                    # casa =?
-                    print(x[j], data[i][j]/self.h)
+                prod.append(self.kernel((x[j] - data[i][j])/h))
             sum[i] = np.prod(prod)
         
-        return (1/(self.n*(self.h**7)))*np.sum(sum)
+        return (1/(self.n*(h**7)))*np.sum(sum)
 
-    def prob(self, data, x):
+    def prob(self, data, x, h):
         classes = data["CLASS"].unique()
         data_x = data.drop(axis=1, columns = ["CLASS"])
 
@@ -49,20 +45,26 @@ class Parzen:
             # pdb.set_trace()
             x_classe = np.array(data_x.loc[data["CLASS"]==classe])
 
-            p_w_x[i] = self.parzen(x_classe, x)
+            p_w_x[i] = self.parzen(x_classe, x, h)
 
         return self.classes[np.argmax(p_w_x)]
 
     def accuracy(self, training, Test): #Entra DataFrame
-        cont = 0
+        accuracy = 0
         coef = 0
         data_x = Test.drop(axis=1, columns = ["CLASS"])
-        for i in Test.index.tolist(): #Retorna lista dos indices de treinamento
-            if self.prob(training, np.array(data_x.loc[i])) == Test.loc[i,"CLASS"]: # Se o classificador classificar corretamente
-                coef += 1 #Conta o acerto
-            cont += 1
-            print(cont)
-        return coef/len(Test) #Numero de acertos pelo número total de classificações
+        for h in self.h_vector:
+            print(h)
+            coef = 0
+            for i in Test.index.tolist():
+                if self.prob(training, np.array(data_x.loc[i]), h) == Test.loc[i,"CLASS"]:
+                    coef += 1
+
+            if((coef/len(Test)) > accuracy):
+                accuracy = coef/len(Test)
+                self.h = h
+            
+        return accuracy
 
     def estimate_h(self, data, k = 5, n = 1): #k = numero de subconjuntos; n = N times
         X = np.array(data.drop(axis=1, columns = ["CLASS"]))
@@ -88,7 +90,7 @@ class Parzen:
     def KfoldNtimes(self, data, k = 5, n = 1): #k = numero de subconjuntos; n = N times
         X = np.array(data.drop(axis=1, columns = ["CLASS"]))
         y = np.array(data["CLASS"])
-        skf = StratifiedKFold(n_splits=k,shuffle=False) #Classe que Andrea achou que realiza o "K Fold N times"
+        skf = StratifiedKFold(n_splits=k,shuffle=True) #Classe que Andrea achou que realiza o "K Fold N times"
         skf.get_n_splits(X, y)
         l = []
         for i in range(n):
@@ -105,4 +107,6 @@ class Parzen:
 df = pd.read_csv('segmentation1.csv')
 # df = pd.read_csv('iris.data')
 modelo = Parzen(df)
-print(modelo.estimate_h(df))
+k = modelo.estimate_h(df)
+print("------------")
+print(k)
