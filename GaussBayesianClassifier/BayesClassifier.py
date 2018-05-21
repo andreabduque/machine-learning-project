@@ -15,7 +15,7 @@ class BayesClassifier:
         return
         
     def parameters(self, data): #Entra DataFrame
-        self.classes = data["CLASS"].value_counts().to_dict()
+        self.classes = data["CLASS"].unique()
         data_x = data.drop(axis=1, columns = ["CLASS"])
         d = len(data_x.iloc[0])
         mean = np.zeros((len(self.classes),d))
@@ -54,7 +54,7 @@ class BayesClassifier:
             p_x_w[i] = left*mid*exp(-0.5*right)
             #p_x_w[i] = ((2*math.pi)**-d/2)*((np.linalg.det(inv_covar))**0.5)*exp(-0.5*(np.matmul(np.matmul((x-self.mean[i]),inv_covar),(x-self.mean[i])))) 
         p_w_x = p_x_w/p_x_w.sum()
-        return(list(self.classes.keys())[np.argmax(p_w_x)])
+        return(self.classes[np.argmax(p_w_x)])
     
     def accuracy(self, Test): #Entra DataFrame
         coef = 0
@@ -83,7 +83,7 @@ class BayesClassifier:
         return(l)
 
 #TESTE
-df = pd.read_csv('iris.data')
+df = pd.read_csv('../iris.data')
 #df = pd.read_csv('segmentation1.csv')
 modelo = BayesClassifier()
 #modelo.parameters(df)
