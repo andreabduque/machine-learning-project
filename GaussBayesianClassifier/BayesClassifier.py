@@ -83,7 +83,7 @@ class BayesClassifier:
         return(l)
 
 #TESTE
-df = pd.read_csv('../iris.data')
+df = pd.read_csv('segmentation1.csv')
 #df = pd.read_csv('segmentation1.csv')
 modelo = BayesClassifier()
 #modelo.parameters(df)

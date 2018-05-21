@@ -77,12 +77,11 @@ class Parzen:
         
         accuracy = 0
         for h in self.h_vector:
-            print(h)
             current = self.accuracy(data.iloc[train_index], data.iloc[test_index], h)
             if(current > accuracy):
                 accuracy = current
                 self.h = h
-
+        print(self.h_vector, self.h, accuracy)
         return #Soma das acurácias de cada subconjunto de teste
 
     def KfoldNtimes(self, data, k, n): #k = numero de subconjuntos; n = N times
@@ -94,12 +93,15 @@ class Parzen:
 
         for i in range(n):
             media = 0
+            flag = 0
             for train, test in skf.split(X, y):  #retorna duas listas:
                 data_train = data.loc[train]
                 data_test = data.loc[test]
-                self.estimate_h(data_train)
-                media += self.accuracy(data_train, data_test, self.h) #Soma das acurácias de cada subconjunto de teste
-                l.append(media/k) #média de cada i-Times
+                if flag == 0:
+                    self.estimate_h(data_train)
+                    flag = 1
+                media += self.accuracy(data_train, data_test, self.h)
+            l.append(media/k) #média de cada i-Times
         return(l)
 
 #TESTE
