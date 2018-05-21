@@ -19,7 +19,7 @@ class Parzen:
         return (1/((2*math.pi)**(1/2)))*math.exp(-x*x/2)
 
     def init_h(self, n):
-        return [random.random()] + [10*random.random() for i in range(n-1)] # gerado entre 0 e 1 - se mostrou mais eficiente
+        return [random.random()] + [10*random.random() for i in range(n-1)]
 
     def parzen(self, data, x, h):
         sum = data.shape[0] * [None]
@@ -37,7 +37,6 @@ class Parzen:
 
         p_w_x = len(classes) * [None]
         for i, classe in enumerate(classes):
-            # pdb.set_trace()
             x_classe = np.array(data_x.loc[data["CLASS"]==classe])
 
             p_w_x[i] = self.parzen(x_classe, x, h)
@@ -61,10 +60,10 @@ class Parzen:
             
         return accuracy
 
-    def estimate_h(self, data, k = 5, n = 1): #k = numero de subconjuntos; n = N times
+    def estimate_h(self, data, k = 5, n = 1):
         X = np.array(data.drop(axis=1, columns = ["CLASS"]))
         y = np.array(data["CLASS"])
-        skf = StratifiedKFold(n_splits=k,shuffle=True) #Classe que Andrea achou que realiza o "K Fold N times"
+        skf = StratifiedKFold(n_splits=k,shuffle=True)
         skf.get_n_splits(X, y)
         l = []
         media = 0
@@ -75,27 +74,23 @@ class Parzen:
             test_index = j
             break
 
-        # for index in test_index:
         self.parameters(data.loc[train_index])
-            # self.prob(data.loc[train_index], data.loc[index]) #Estimação dos parametros da distribuição normal a partir dos dados de treinamento
-        return(self.accuracy(data.loc[train_index], data.loc[test_index])) #Soma das acurácias de cada subconjunto de teste
-        #     l.append(media/len(test_index)) #média de cada i-Times
-        # return(l)
+        return(self.accuracy(data.loc[train_index], data.loc[test_index]))
 
-    def KfoldNtimes(self, data, k = 5, n = 1): #k = numero de subconjuntos; n = N times
+    def KfoldNtimes(self, data, k = 5, n = 1):
         X = np.array(data.drop(axis=1, columns = ["CLASS"]))
         y = np.array(data["CLASS"])
-        skf = StratifiedKFold(n_splits=k,shuffle=True) #Classe que Andrea achou que realiza o "K Fold N times"
+        skf = StratifiedKFold(n_splits=k,shuffle=True)
         skf.get_n_splits(X, y)
         l = []
         for i in range(n):
             media = 0
-            train_index, test_index = skf.split(X, y)[0] #retorna duas listas:
+            train_index, test_index = skf.split(X, y)[0]
             for index in test_index:
                 self.parameters(data.loc[train_index])
-                self.prob(data.loc[train_index], data.loc[index]) #Estimação dos parametros da distribuição normal a partir dos dados de treinamento
-                media += self.accuracy(data.loc[test_index]) #Soma das acurácias de cada subconjunto de teste
-            l.append(media/k) #média de cada i-Times
+                self.prob(data.loc[train_index], data.loc[index])
+                media += self.accuracy(data.loc[test_index])
+            l.append(media/k)
         return(l)
 
 #TESTE
