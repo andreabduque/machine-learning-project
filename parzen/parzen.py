@@ -11,20 +11,15 @@ class Parzen:
     def __init__(self, data):
         self.classes = data["CLASS"].unique()
 
-        return
-
     def parameters(self, data):
-        self.h = 0
         self.h_vector = self.init_h(5)
-        self.data = data
-        self.n = data.shape[0]
-        self.p = data.shape[1]
+        self.h = 0
 
     def kernel(self, x):
         return (1/((2*math.pi)**(1/2)))*math.exp(-x*x/2)
 
     def init_h(self, n):
-        return [5*random.random() for i in range(n)] # gerado entre 0 e 1 - se mostrou mais eficiente
+        return [random.random()] + [10*random.random() for i in range(n-1)] # gerado entre 0 e 1 - se mostrou mais eficiente
 
     def parzen(self, data, x, h):
         sum = data.shape[0] * [None]
@@ -34,7 +29,7 @@ class Parzen:
                 prod.append(self.kernel((x[j] - data[i][j])/h))
             sum[i] = np.prod(prod)
         
-        return (1/(self.n*(h**7)))*np.sum(sum)
+        return (1/(data.shape[0]*(h**7)))*np.sum(sum)
 
     def prob(self, data, x, h):
         classes = data["CLASS"].unique()
