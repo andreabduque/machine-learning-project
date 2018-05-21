@@ -12,7 +12,7 @@ class Parzen:
         self.classes = data["CLASS"].unique()
 
     def parameters(self):
-        self.h_vector = self.init_h(5)
+        self.h_vector = self.init_h(3)
         self.h = 0
 
     def kernel(self, x):
@@ -29,7 +29,6 @@ class Parzen:
             for j in range(data.shape[1]):
                 prod.append(self.kernel((x[j] - data[i][j])/h))
             sum[i] = np.prod(prod)
-        print(data.shape[0],h**p)
         return (1/(data.shape[0]*(h**p)))*np.sum(sum)
 
     def prob(self, data, x, h):
@@ -61,14 +60,14 @@ class Parzen:
         return accuracy
 
     def estimate_h(self, data, k = 5, n = 1): #k = numero de subconjuntos; n = N times
-        X = np.array(data.drop(axis=1, columns = ["CLASS"]))
-        y = np.array(data["CLASS"])
+        _x = np.array(data.drop(axis=1, columns = ["CLASS"]))
+        _y = np.array(data["CLASS"])
         skf = StratifiedKFold(n_splits=k,shuffle=True) #Classe que Andrea achou que realiza o "K Fold N times"
-        skf.get_n_splits(X, y)
+        skf.get_n_splits(_x, _y)
 
         train_index =[]
         test_index = []
-        for i, j in skf.split(X, y):
+        for i, j in skf.split(_x, _y):
             train_index = i
             test_index = j
             break
@@ -76,16 +75,15 @@ class Parzen:
         # for index in test_index:
         self.parameters()
         
-        data_x = data.loc[test_index].drop(axis=1, columns = ["CLASS"])
         accuracy = 0
         for h in self.h_vector:
             print(h)
-            current = self.accuracy(data.loc[train_index], data.loc[test_index], h)
+            current = self.accuracy(data.iloc[train_index], data.iloc[test_index], h)
             if(current > accuracy):
                 accuracy = current
                 self.h = h
 
-        return  #Soma das acurácias de cada subconjunto de teste
+        return #Soma das acurácias de cada subconjunto de teste
 
     def KfoldNtimes(self, data, k, n): #k = numero de subconjuntos; n = N times
         X = np.array(data.drop(axis=1, columns = ["CLASS"]))
@@ -109,6 +107,6 @@ df = pd.read_csv('segmentation1.csv')
 # df = pd.read_csv('iris.data')
 modelo = Parzen(df)
 # k = modelo.estimate_h(df)
-k = modelo.KfoldNtimes(df,10,30)
+k = modelo.KfoldNtimes(df, 10,30)
 print("------------")
 print(k)
