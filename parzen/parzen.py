@@ -4,7 +4,9 @@ import math
 import random
 import pdb
 from sklearn.model_selection import StratifiedKFold
+import time
 
+t = time.time()
 
 class Parzen:
 
@@ -12,14 +14,14 @@ class Parzen:
         self.classes = data["CLASS"].unique()
 
     def parameters(self):
-        self.h_vector = self.init_h(3)
+        self.h_vector = self.init_h(5)
         self.h = 0
 
     def kernel(self, x):
         return (1/((2*math.pi)**(1/2)))*math.exp(-x*x/2)
 
     def init_h(self, n):
-        return [random.random()] + [10*random.random() for i in range(n-1)] # gerado entre 0 e 1 - se mostrou mais eficiente
+        return [random.random()] + [10*random.random() for i in range(n-2)] + [10*random.random()+10]
 
     def parzen(self, data, x, h):
         p = len(x)
@@ -37,7 +39,6 @@ class Parzen:
 
         p_w_x = len(classes) * [None]
         for i, classe in enumerate(classes):
-            # pdb.set_trace()
             x_classe = np.array(data_x.loc[data["CLASS"]==classe])
 
             p_w_x[i] = self.parzen(x_classe, x, h)
@@ -64,6 +65,7 @@ class Parzen:
         _y = np.array(data["CLASS"])
         skf = StratifiedKFold(n_splits=k,shuffle=True) #Classe que Andrea achou que realiza o "K Fold N times"
         skf.get_n_splits(_x, _y)
+        global t
 
         train_index =[]
         test_index = []
@@ -71,7 +73,6 @@ class Parzen:
             train_index = i
             test_index = j
             break
-
         # for index in test_index:
         self.parameters()
         
@@ -81,19 +82,19 @@ class Parzen:
             if(current > accuracy):
                 accuracy = current
                 self.h = h
-        print(self.h_vector, self.h, accuracy)
-        return #Soma das acurácias de cada subconjunto de teste
+        print(self.h_vector, self.h, accuracy, time.time() - t)
+        t = time.time()
 
     def KfoldNtimes(self, data, k, n): #k = numero de subconjuntos; n = N times
         X = np.array(data.drop(axis=1, columns = ["CLASS"]))
         y = np.array(data["CLASS"])
-        skf = StratifiedKFold(n_splits=k,shuffle=True) #Classe que Andrea achou que realiza o "K Fold N times"
-        skf.get_n_splits(X, y)
         l = []
 
         for i in range(n):
             media = 0
             flag = 0
+            skf = StratifiedKFold(n_splits=k,shuffle=True)
+            skf.get_n_splits(X, y)
             for train, test in skf.split(X, y):  #retorna duas listas:
                 data_train = data.loc[train]
                 data_test = data.loc[test]
@@ -105,10 +106,10 @@ class Parzen:
         return(l)
 
 #TESTE
+# df = pd.read_csv('segmentation1.csv')
 df = pd.read_csv('segmentation1.csv')
-# df = pd.read_csv('iris.data')
 modelo = Parzen(df)
 # k = modelo.estimate_h(df)
-k = modelo.KfoldNtimes(df, 10,30)
+k = modelo.KfoldNtimes(df, 10,10)
 print("------------")
 print(k)
