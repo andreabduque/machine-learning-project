@@ -82,6 +82,6 @@ class BayesClassifier:
             l.append(media/k)
         return(l)
 
-df = pd.read_csv('segmentation1.csv')
+df = pd.read_csv('../segmentation1.csv')
 modelo = BayesClassifier()
 print(modelo.KfoldNtimes(10,30,df))

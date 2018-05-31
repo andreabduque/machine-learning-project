@@ -105,11 +105,14 @@ class Parzen:
             l.append(media/k) #média de cada i-Times
         return(l)
 
-#TESTE
-# df = pd.read_csv('segmentation1.csv')
-df = pd.read_csv('segmentation1.csv')
-modelo = Parzen(df)
-# k = modelo.estimate_h(df)
-k = modelo.KfoldNtimes(df, 10,10)
-print("------------")
-print(k)
+    def hello_world_joao(self):
+        print('Hello world jão')
+
+# #TESTE
+# # df = pd.read_csv('../segmentation1.csv')
+# df = pd.read_csv('../iris.data')
+# modelo = Parzen(df)
+# # k = modelo.estimate_h(df)
+# k = modelo.KfoldNtimes(df, 10,10)
+# print("------------")
+# print(k)
