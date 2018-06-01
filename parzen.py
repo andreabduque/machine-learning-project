@@ -44,7 +44,6 @@ class Parzen:
             p_w_x[i] = self.parzen(x_classe, x, h)
 
         self.p_w_x = p_w_x/sum(p_w_x)
-        print(self.p_w_x)
         return self.classes[np.argmax(p_w_x)]
 
     def accuracy(self, training, Test, h): #Entra DataFrame

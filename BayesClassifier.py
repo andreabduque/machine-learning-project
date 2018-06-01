@@ -59,7 +59,6 @@ class BayesClassifier:
         except:
             p_w_x = p_x_w/0.0000001
         self.p_w_x = p_w_x/sum(p_w_x)
-        print(self.p_w_x)
         return(self.classes[np.argmax(p_w_x)])
     
     def accuracy(self, Test):
