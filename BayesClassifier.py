@@ -58,6 +58,8 @@ class BayesClassifier:
             p_w_x = p_x_w/p_x_w.sum()
         except:
             p_w_x = p_x_w/0.0000001
+        self.p_w_x = p_w_x/sum(p_w_x)
+        print(self.p_w_x)
         return(self.classes[np.argmax(p_w_x)])
     
     def accuracy(self, Test):
@@ -82,6 +84,6 @@ class BayesClassifier:
             l.append(media/k)
         return(l)
 
-df = pd.read_csv('../segmentation1.csv')
-modelo = BayesClassifier()
-print(modelo.KfoldNtimes(10,30,df))
+# df = pd.read_csv('iris.data')
+# modelo = BayesClassifier()
+# print(modelo.KfoldNtimes(10,30,df))
