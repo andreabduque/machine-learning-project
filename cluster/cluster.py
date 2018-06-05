@@ -13,12 +13,9 @@ class Partition:
 		self.view = view
 
 	def run(self):
-		# print("inicializando")
 		self.initialize_parameters()
 		self.initialize_partitions()
-		# print("otimizando")
 		self.optimize_partition()
-		print("fim algoritmo")
 
 	def get_objective_function(self):
 		clusters = [[] for _ in range(self.c)]
@@ -53,13 +50,6 @@ class Partition:
 		self.prototypes = random_sample.as_matrix()
 		self.initial_prototypes = random_sample.index.values
 
-		# print("prots iniciais")
-		# print(self.prototypes)
-
-		# print("pesos iniciais")
-		# print(self.weights)
-
-
 	def initialize_partitions(self):
 		self.elements = {}
 		self.clusters = [[] for _ in range(self.c)]
@@ -88,18 +78,17 @@ class Partition:
 		test = 1
 		ite = 0
 		while(test):
-			# print(ite)
 			ite += 1
 			# clusters = [[] for _ in range(self.c)]
 			# for key in self.elements.keys():
 			# 	clusters[self.elements[key]].append(key)
 
-			# print("calculando melhores prototipos")
+			#Calculating best prototypes
 			self.update_prototypes(self.clusters)
-			# print("calculando hiper parametros")
+			#calculating hyper parameters
 			self.update_weights(self.clusters)
 
-			# print("alocando nas particoes")
+			#Allocating in partitions
 			test = 0
 			for k in range(self.rows):
 				dist = float("inf")
@@ -112,24 +101,21 @@ class Partition:
 						nearest_cluster = h
 						dist = x
 
-				# if(k in self.elements):
 				if(nearest_cluster != self.elements[k]):
 					test = 1
 					nearest_cluster_old = self.elements[k]
 					self.elements[k] = nearest_cluster
-					# adicionando no novo cluster
+					#Adding to new cluster
 					self.clusters[nearest_cluster].append(k)
 					self.item_to_position[nearest_cluster][k] = len(self.clusters[nearest_cluster])-1
 
-					# removendo do antigo cluster
+					#Removing from old cluster
 					position = self.item_to_position[nearest_cluster_old].pop(k)
 					last_item = self.clusters[nearest_cluster_old].pop()
 					if position != len(self.clusters[nearest_cluster_old]):
 						self.clusters[nearest_cluster_old][position] = last_item
 						self.item_to_position[nearest_cluster_old][last_item] = position
 
-
-		# print(str(ite) + " iteracoes ate minimo local")
 
 	def update_prototypes(self, clusters):
 		for i in range(self.c):
@@ -181,41 +167,17 @@ class Partition:
 		return adjusted_rand_score(true_labels, pred_labels)
 
 def get_clustering_result(it):
-	part = Partition(3, view)
+	part = Partition(n_clusters, view)
 	part.run()
-	return (part.get_objective_function(), part.get_partition_rand_index(groups_class), part.initial_prototypes)
+	print("fim iteracao")
+	return (part.get_objective_function(), part.get_partition_rand_index(groups_class), part.initial_prototypes, 
+			part.prototypes, part.weights, part.get_result())
 	
-
-data = pd.read_csv("iris.data", sep=",")
+n_clusters = 3
+data = pd.read_csv("../iris.data", sep=",")
 view = data.drop(axis=1, columns = ["CLASS"])
 groups_class = data["CLASS"]
 
-
-# <<<<<<< Updated upstream
-# best_energy = float("inf")
-
-# tempo1 = time.time()
-# for i in range(0, 100):
-# 	print("iteracao " + str(i))
-# 	part.run()
-# 	energy = part.get_objective_function()
-# 	if(energy < best_energy):
-# 		best_energy = energy
-# 		best_energy_ari = part.get_partition_rand_index(groups_class)
-# 		best_result = part.get_result()
-
-# tempo2 = time.time()
-
-# print(tempo2-tempo1)
-
-# print("Melhor Energia " + str(2*energy))
-# print("ARI " + str(best_energy_ari))
-# with open('result.json', 'w') as fp:
-# 	json.dump(best_result, fp)
-# =======
-# results = []
-# n_iter = range(100)
-# pool = Pool(100)
 before = time.time()
 
 with Pool(processes=5) as pool:
@@ -226,20 +188,22 @@ print("Tempo " + str(time.time() - before))
 
 results.sort(key=lambda tup: tup[0])
 
-# print(results)
-
-# best_energy = float("inf")
-# before = time.time()
-# for i in range(0, 100):
-# 	# print("iteracao " + str(i))
-# 	part.run()
-# 	energy = part.get_objective_function()
-# 	if(energy < best_energy):
-# 		best_energy = energy
-# 		best_energy_ari = part.get_partition_rand_index(groups_class)
-# 		best_result = part.get_result()
-
 print("Melhor Energia " + str(2*results[0][0]))
 print("ARI " + str(results[0][1]))
-print("Prototipos")
+print("Prototipos Iniciais")
 print(results[0][2])
+print("Representantes de cada grupo")
+print(results[0][3])
+print("Hiperparametros")
+print(results[0][4])
+
+with open('result.json', 'w') as fp:
+	json.dump(results[0][5], fp)
+
+clusters = [[] for _ in range(n_clusters)]
+for key in results[0][5].keys():
+	clusters[results[0][5][key]].append(key)
+
+for i, cluster in enumerate(clusters):
+	print("Elementos Cluster " + str(i))
+	print(cluster)
