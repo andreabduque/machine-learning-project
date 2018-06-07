@@ -173,8 +173,8 @@ def get_clustering_result(it):
 	return (part.get_objective_function(), part.get_partition_rand_index(groups_class), part.initial_prototypes, 
 			part.prototypes, part.weights, part.get_result())
 	
-n_clusters = 3
-data = pd.read_csv("../iris.data", sep=",")
+n_clusters = 7
+data = pd.read_csv("../shape_view.csv", sep=",")
 view = data.drop(axis=1, columns = ["CLASS"])
 groups_class = data["CLASS"]
 
