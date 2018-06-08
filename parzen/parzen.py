@@ -43,7 +43,11 @@ class Parzen:
 
             p_w_x[i] = self.parzen(x_classe, x, h)
 
-        self.p_w_x = p_w_x/sum(p_w_x)
+        try:
+            self.p_w_x = p_w_x/sum(p_w_x)
+        except:
+            self.p_w_x = p_w_x/0.0000001
+        
         return self.classes[np.argmax(p_w_x)]
 
     def accuracy(self, training, Test, h): #Entra DataFrame
@@ -110,8 +114,8 @@ class Parzen:
         print('Hello world jão')
 
 #TESTE
-# df = pd.read_csv('segmentation1.csv')
-# df = pd.read_csv('iris.data')
+# df = pd.read_csv('../segmentation1.csv')
+# df = pd.read_csv('../iris.data')
 # modelo = Parzen(df)
 # # k = modelo.estimate_h(df)
 # k = modelo.KfoldNtimes(df, 10,10)

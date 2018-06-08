@@ -1,12 +1,16 @@
+import sys 
+sys.path.append("../parzen")
+sys.path.append("../Gauss")
+
 import numpy as np
 import pandas as pd
 from parzen import Parzen
 from BayesClassifier import BayesClassifier
 from sklearn.model_selection import StratifiedKFold
 
-segmentation = pd.read_csv("segmentation1.csv")
-shape_view = pd.read_csv("shape_view.csv")
-rgb_view = pd.read_csv("rgb_view.csv")
+segmentation = pd.read_csv("../segmentation1.csv")
+shape_view = pd.read_csv("../shape_view.csv")
+rgb_view = pd.read_csv("../rgb_view.csv")
 
 classes = segmentation["CLASS"].unique()
 
@@ -87,7 +91,7 @@ def KfoldNtimes(data, k, n): #k = numero de subconjuntos; n = N times
                 att_Parzen(data_train)
                 flag = 1
             media += accuracy(data_train, data_test)
-        l.append(media/k) #média de cada i-Times
+        l.append(media/k) #media de cada i-Times
     return(l)
 
 print(KfoldNtimes(segmentation, 10, 30))
