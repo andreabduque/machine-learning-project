@@ -65,10 +65,11 @@ def sum_rule(x, completeView):
 
 def accuracy(Train, Test):
 	accuracy = 0
+	classe = Test.CLASS
 	test = np.array(Test.drop(axis=1, columns = ["CLASS"]))
 
 	for i, x in enumerate(test):
-		if  sum_rule(x, Train) == Test.iloc[i,"CLASS"]:
+		if  sum_rule(x, Train) == classe.iloc[i]:
 			accuracy += 1
 	print(accuracy/len(Test))
 	return accuracy/len(Test)
@@ -91,6 +92,7 @@ def KfoldNtimes(data, k, n): #k = numero de subconjuntos; n = N times
                 att_Parzen(data_train)
                 flag = 1
             media += accuracy(data_train, data_test)
+        print(media/k)
         l.append(media/k) #media de cada i-Times
     return(l)
 
