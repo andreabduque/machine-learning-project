@@ -113,7 +113,7 @@ class Parzen:
         print('Hello world jão')
 
 #TESTE
-df = pd.read_csv('rgb_view.csv')
+df = pd.read_csv('../rgb_view.csv')
 # df = pd.read_csv('../iris.data')
 modelo = Parzen(df)
 # # k = modelo.estimate_h(df)
