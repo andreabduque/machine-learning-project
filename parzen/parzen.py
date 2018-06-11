@@ -43,10 +43,9 @@ class Parzen:
 
             p_w_x[i] = self.parzen(x_classe, x, h)
 
-        try:
-            self.p_w_x = p_w_x/sum(p_w_x)
-        except:
-            self.p_w_x = p_w_x/0.0000001
+        self.p_w_x = p_w_x/sum(p_w_x)
+        # except:
+        #     self.p_w_x = p_w_x/0.0000001
         
         return self.classes[np.argmax(p_w_x)]
 
@@ -114,10 +113,10 @@ class Parzen:
         print('Hello world jão')
 
 #TESTE
-# df = pd.read_csv('../segmentation1.csv')
+df = pd.read_csv('rgb_view.csv')
 # df = pd.read_csv('../iris.data')
-# modelo = Parzen(df)
+modelo = Parzen(df)
 # # k = modelo.estimate_h(df)
-# k = modelo.KfoldNtimes(df, 10,10)
+k = modelo.KfoldNtimes(df, 10,30)
 # print("------------")
-# print(k)
+print(k)

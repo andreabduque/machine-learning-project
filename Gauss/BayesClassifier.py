@@ -83,6 +83,6 @@ class BayesClassifier:
             l.append(media/k)
         return(l)
 
-# df = pd.read_csv('../iris.data')
-# modelo = BayesClassifier()
-# print(modelo.KfoldNtimes(10,30,df))
+df = pd.read_csv('shape_view.csv')
+modelo = BayesClassifier()
+print(modelo.KfoldNtimes(10,30,df))
