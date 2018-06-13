@@ -37,4 +37,36 @@ RESULTS: [0.9009523809523812, 0.8157142857142856, 0.8966666666666668, 0.89857142
 
 IC = (0.7974193540600104, 0.9890250903844343)
 
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 
+***FRIEDMAN TEST***
+> library(stats) 
+> friedman = friedman.test(data_matrix)
+> friedman
+
+	Friedman rank sum test
+
+data:  data_matrix
+Friedman chi-squared = 114.25, df = 4, p-value < 2.2e-16
+
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+
+***POST HOC TEST - NEMENYI***
+> library(PMCMR) """Pairwise Multiple Comparisons of Mean Rank Sums"""
+> nemenyi = posthoc.friedman.nemenyi.test(data_matrix)
+> nemenyi
+
+	Pairwise comparisons using Nemenyi multiple comparison test	
+             with q approximation for unreplicated blocked data 
+
+data:  data_matrix 
+
+                BAYES   PARZEN_COMPLETE PARZEN_SHAPE PARZEN_RGB
+PARZEN_COMPLETE 2.0e-12 -               -            -         
+PARZEN_SHAPE    0.1024  5.2e-14         -            -         
+PARZEN_RGB      0.0014  0.0035          4.2e-09      -         
+ENSEMBLE        0.0035  0.0014          2.0e-08      0.9992    
+
+P value adjustment method: none
