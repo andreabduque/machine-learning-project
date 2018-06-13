@@ -54,6 +54,7 @@ Friedman chi-squared = 114.25, df = 4, p-value < 2.2e-16
 -----------------------------------------------------------------------
 
 ***POST HOC TEST - NEMENYI***
+
 > library(PMCMR) """Pairwise Multiple Comparisons of Mean Rank Sums"""
 > nemenyi = posthoc.friedman.nemenyi.test(data_matrix)
 > nemenyi
