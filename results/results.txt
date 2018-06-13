@@ -41,6 +41,7 @@ IC = (0.7974193540600104, 0.9890250903844343)
 -----------------------------------------------------------------------
 
 ***FRIEDMAN TEST***
+
 > library(stats) 
 > friedman = friedman.test(data_matrix)
 > friedman
